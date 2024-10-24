@@ -4,6 +4,7 @@
 #include <map>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 class BitcoinExchange {
     private:
@@ -19,7 +20,7 @@ class BitcoinExchange {
         BitcoinExchange&         operator=(const BitcoinExchange &other);
         
         void    loadFile(std::string inputfile);
-        int     validLine(std::string line);
+        void    validLine(std::string line);
         // void    extractValue(std::string line, int &year, double &price);
         int     checkDate(std::string date);
 

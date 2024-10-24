@@ -42,7 +42,7 @@ int    BitcoinExchange::checkDate(std::string date) {
     return 1;
 }
 
-int BitcoinExchange::validLine(std::string line) {
+void BitcoinExchange::validLine(std::string line) {
 
     //check pipe
     size_t posPipe = line.find('|');
@@ -54,11 +54,13 @@ int BitcoinExchange::validLine(std::string line) {
     std::string date = line.substr(0, posPipe);
     std::string price = line.substr(posPipe + 1, line.length());
     
-    std::cout << "'" << date << "' '" << price<< "'" << std::endl;
-
-    //erase space from date and price
+    //erase whitespaces from date and price
     date.erase(date.find_last_not_of(" \t") + 1);
+    date.erase(0, date.find_first_not_of(" \t"));
+
+    price.erase(price.find_last_not_of(" \t") + 1);
     price.erase(0, price.find_first_not_of(" \t"));
+    
     
     //price: check for content
     //date: check for space pos[length()] and dash at pos[4] and pos[7]
@@ -66,6 +68,7 @@ int BitcoinExchange::validLine(std::string line) {
         throw invalidLine();
 
     //date::erase dashes
+    std::string dateCpy = date;
     date.erase(7,1);
     date.erase(4,1);
     
@@ -78,30 +81,35 @@ int BitcoinExchange::validLine(std::string line) {
     with a message (date) passed*/
     try {
         checkDate(date);
-        dateVal = std::stoi(date);
+        std::istringstream(date) >> dateVal;
     }
     catch (std::exception &e) {
-        std::cout << "Error:\t\t" << e.what() << "=>" << date << std::endl;
+        std::cout << "Error:\t" << e.what() << " => " << dateCpy << std::endl;
         _success = false;
         return ;
     }
 
     try {
-        priceVal = std::stod(price);
+        std::istringstream iss(price);
+        if (!(iss >> priceVal))
+            throw badInput();
+        std::string remnant;
+        if (iss >> remnant)
+            throw badInput();
     }
     catch (std::exception &e) {
-        std::cout << "Error:\t\t" << e.what() << "=>" << price << std::endl;
+        std::cout << "Error:\t" << e.what() << " => " << price << std::endl;
         _success = false;
         return ;
     }
-    std::cout << "'" << date << "' '" << price<< "'" << std::endl;
     this->Data[dateVal] = priceVal;
+    
+    /*take out again*/
+    std::cout << dateCpy << " | " << price << std::endl;
+    
     return ;
 }
 
-// void    BitcoinExchange::extractValue(std::string line, int &year, double &price) {
-//     /*fill*/
-// }
 
 void BitcoinExchange::loadFile(std::string input) {
     std::ifstream iFile;
@@ -116,18 +124,15 @@ void BitcoinExchange::loadFile(std::string input) {
         throw DatabaseError();
     
     std::string line;
-    int         i = 0;
     
     while (std::getline(iFile, line)) {
         try {
             validLine(line);
         } catch (std::exception &e) {
-            std::cout << "Error:\t\t" << e.what() << std::endl;
+            std::cout << "Error:\t" << e.what() << std::endl;
             _success = false;
         }
     }
 }
-
-void processData();
 
 
