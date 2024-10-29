@@ -2,7 +2,7 @@
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        std::cout   << "ERROR:\t\tProgram takes one parameter"
+        std::cout   << "ERROR:\tProgram takes one parameter"
                     << std::endl;
         return 1;
     }
@@ -11,6 +11,6 @@ int main(int argc, char *argv[]) {
         Data.loadFile(argv[1]);
 
     } catch (std::exception &e) {
-        std::cout << "Error:\t\t" << e.what() << std::endl;
+        std::cout << "Error:\t" << e.what() << std::endl;
     }
 }

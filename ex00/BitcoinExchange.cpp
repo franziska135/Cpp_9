@@ -10,7 +10,7 @@ BitcoinExchange::BitcoinExchange(const BitcoinExchange& other) {
 
 BitcoinExchange& BitcoinExchange::operator=(const BitcoinExchange& other) {
     if (this != &other) {
-        this->Data = other.Data;
+        this->Input = other.Input;
     }
     return *this;
 }
@@ -20,6 +20,10 @@ BitcoinExchange::~BitcoinExchange  () {
 
 const char* BitcoinExchange::DatabaseError::what() const throw () {
     return "Database cannot be opened";
+}
+
+const char* BitcoinExchange::HeaderWrong::what() const throw () {
+    return "Header is formatted incorrectly";
 }
 
 const char* BitcoinExchange::FileError::what() const throw () {
@@ -34,37 +38,157 @@ const char* BitcoinExchange::badInput::what() const throw () {
     return "Bad input";
 }
 
-int    BitcoinExchange::checkDate(std::string date) {
-    for (size_t i = 0; i < date.length(); ++i) {
-        if (!std::isdigit(date[i]))
-            throw badInput();
-    }
-    return 1;
-}
-
-void BitcoinExchange::validLine(std::string line) {
-
-    //check pipe
-    size_t posPipe = line.find('|');
+void    BitcoinExchange::readDatabase(std::string line, bool firstline) {
+    size_t posPipe = line.find(',');
     if (posPipe == std::string::npos || posPipe == 0
         || posPipe == line.length() - 1
-        || line.find('|', posPipe + 1) != std::string::npos)
-        throw invalidLine();
-    
+        || line.find('|', posPipe + 1) != std::string::npos) {
+            if (firstline)
+                throw HeaderWrong();
+            else
+                return ;
+        }
     std::string date = line.substr(0, posPipe);
     std::string price = line.substr(posPipe + 1, line.length());
     
     //erase whitespaces from date and price
     date.erase(date.find_last_not_of(" \t") + 1);
     date.erase(0, date.find_first_not_of(" \t"));
-
     price.erase(price.find_last_not_of(" \t") + 1);
     price.erase(0, price.find_first_not_of(" \t"));
     
-    
+    if (firstline) {
+        if (date != "date" || price != "exchange_rate")
+            throw HeaderWrong();
+        return ;
+    }
     //price: check for content
     //date: check for space pos[length()] and dash at pos[4] and pos[7]
     if (price.empty() || date.length() != 10 || date[4] != '-' || date[7] != '-')
+        return ;
+    //date::erase dashes
+    std::string dateCpy = date;
+    date.erase(7,1);
+    date.erase(4,1);
+    
+    //check the date
+    int     dateVal;
+    double  priceVal;
+
+    /*can turn checkDate to return int and then throw appropriate error
+    with a message (date) passed*/
+    try {
+        checkDate(date);
+        std::istringstream(date) >> dateVal;
+    }
+    catch (std::exception &e) {
+        return ;
+    }
+    try {
+        std::istringstream iss(price);
+        if (!(iss >> priceVal))
+            throw badInput();
+        std::string remnant;
+        if (iss >> remnant)
+            throw badInput();
+    
+        if (priceVal < 0 || priceVal > 2147483647)
+            throw badInput();
+    }
+    catch (std::exception &e) {
+        return ;
+    }
+    this->Database[dateVal] = priceVal;
+}
+
+void    BitcoinExchange::checkPrice(double price) {
+    if (price < 0 || price > 1000)
+        throw badInput();
+}
+
+void    BitcoinExchange::checkDate(std::string date) {
+    for (size_t i = 0; i < date.length(); ++i) {
+        if (!std::isdigit(date[i]))
+            throw badInput();
+    }
+    
+    int year, month, day;
+
+    std::string yearStr = date.substr(0, 4);
+    std::string monthStr = date.substr(4, 2);
+    std::string dayStr = date.substr(6, 2);
+
+    std::istringstream(yearStr) >> year;
+    std::istringstream(monthStr) >> month;
+    std::istringstream(dayStr) >> day;
+        
+    if (year < 2009 || year > 2024)
+        throw badInput();
+    if (month < 1 || month > 12)
+        throw badInput();
+    if (day < 1 || day > 31)
+        throw badInput();
+    
+    //check for correct dates in the months and leap year
+    int monthDay [] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if (day > monthDay[month - 1])
+        if (!(month == 2 && day == 29 && (year % 4 == 0 || (year % 100 != 0 && year % 400 == 0))))
+            throw badInput();
+}
+
+void    BitcoinExchange::checkPrintKey(int date, double amount) {
+    std::map<int, double>::iterator it = Database.find(date);
+
+    double finalPrice = 0;
+
+    if (it != Database.end()) {
+        finalPrice = amount * it->second;
+        std::cout << finalPrice << std::endl;
+    }
+    else {
+        it = Database.lower_bound(date);
+
+        if (it == Database.begin() && it->first > date)
+            std::cout << "date is too early, no entries found in database" << std::endl;
+        else {
+            if (it == Database.end() || it->first > date)
+                --it;
+            finalPrice = amount * it->second;
+            std::cout << finalPrice << std::endl;
+        }
+
+    }
+}
+
+void    BitcoinExchange::validLine(std::string line, bool firstline) {
+    size_t posPipe = line.find('|');
+    if (posPipe == std::string::npos || posPipe == 0
+        || posPipe == line.length() - 1
+        || line.find('|', posPipe + 1) != std::string::npos) {
+            if (firstline)
+                throw HeaderWrong();
+            else
+                throw invalidLine();
+        }
+    
+    std::string date = line.substr(0, posPipe);
+    std::string value = line.substr(posPipe + 1, line.length());
+    
+    //erase whitespaces from date and value
+    date.erase(date.find_last_not_of(" \t") + 1);
+    date.erase(0, date.find_first_not_of(" \t"));
+
+    value.erase(value.find_last_not_of(" \t") + 1);
+    value.erase(0, value.find_first_not_of(" \t"));
+    
+    //value: check for content
+    //date: check for space pos[length()] and dash at pos[4] and pos[7]
+    if (firstline) {
+        if (date != "date" || value != "value")
+            throw HeaderWrong();
+        return ;
+    }
+    if (value.empty() || date.length() != 10 || date[4] != '-' || date[7] != '-')
         throw invalidLine();
 
     //date::erase dashes
@@ -73,12 +197,9 @@ void BitcoinExchange::validLine(std::string line) {
     date.erase(4,1);
     
     //check the date
-    /*inportant to find a solution to print the input*/
     int     dateVal;
-    double  priceVal;
+    double  amountVal;
 
-    /*can turn checkDate to return int and then throw appropriate error
-    with a message (date) passed*/
     try {
         checkDate(date);
         std::istringstream(date) >> dateVal;
@@ -90,23 +211,23 @@ void BitcoinExchange::validLine(std::string line) {
     }
 
     try {
-        std::istringstream iss(price);
-        if (!(iss >> priceVal))
+        std::istringstream iss(value);
+        if (!(iss >> amountVal))
             throw badInput();
         std::string remnant;
         if (iss >> remnant)
             throw badInput();
+        checkPrice(amountVal);
     }
     catch (std::exception &e) {
-        std::cout << "Error:\t" << e.what() << " => " << price << std::endl;
+        std::cout << "Error:\t" << e.what() << " => " << value << std::endl;
         _success = false;
         return ;
     }
-    this->Data[dateVal] = priceVal;
+    this->Input[dateVal] = amountVal;
     
-    /*take out again*/
-    std::cout << dateCpy << " | " << price << std::endl;
-    
+    std::cout << dateCpy << " => " ;
+    checkPrintKey(dateVal, amountVal);
     return ;
 }
 
@@ -124,15 +245,21 @@ void BitcoinExchange::loadFile(std::string input) {
         throw DatabaseError();
     
     std::string line;
-    
+
+    std::getline(database, line);
+    readDatabase(line, ISFIRSTLINE);
+    while (std::getline(database, line))
+        readDatabase(line, ISNOTFIRSTLINE);
+
+
+    std::getline(iFile, line);
+    validLine(line, ISFIRSTLINE);
     while (std::getline(iFile, line)) {
         try {
-            validLine(line);
+            validLine(line, ISNOTFIRSTLINE);
         } catch (std::exception &e) {
             std::cout << "Error:\t" << e.what() << std::endl;
             _success = false;
         }
     }
 }
-
-

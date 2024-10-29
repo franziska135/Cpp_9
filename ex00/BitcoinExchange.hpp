@@ -6,9 +6,13 @@
 #include <fstream>
 #include <sstream>
 
+#define ISFIRSTLINE 1
+#define ISNOTFIRSTLINE 0
+
 class BitcoinExchange {
     private:
-        std::map<int, double>   Data;
+        std::map<int, double>   Input;
+        std::map<int, double>   Database;
         std::string             _database;
         bool                    _success;
         
@@ -20,9 +24,11 @@ class BitcoinExchange {
         BitcoinExchange&         operator=(const BitcoinExchange &other);
         
         void    loadFile(std::string inputfile);
-        void    validLine(std::string line);
-        // void    extractValue(std::string line, int &year, double &price);
-        int     checkDate(std::string date);
+        void    readDatabase(std::string database, bool firstline);
+        void    validLine(std::string line, bool firstline);
+        void    checkDate(std::string date);
+        void    checkPrice(double price);
+        void    checkPrintKey(int key, double amount);
 
         class   FileError : public std::exception {
             public:
@@ -30,6 +36,11 @@ class BitcoinExchange {
         };
 
         class   DatabaseError : public std::exception {
+            public:
+                const char * what() const throw();
+        };
+
+        class   HeaderWrong : public std::exception {
             public:
                 const char * what() const throw();
         };
