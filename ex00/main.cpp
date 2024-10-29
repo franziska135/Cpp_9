@@ -8,9 +8,11 @@ int main(int argc, char *argv[]) {
     }
     try {
         BitcoinExchange Data;
-        Data.loadFile(argv[1]);
+        Data.loadFiles(argv[1]);
 
     } catch (std::exception &e) {
         std::cout << "Error:\t" << e.what() << std::endl;
+        return 0;
     }
+    return 1;
 }

@@ -38,6 +38,8 @@ const char* BitcoinExchange::badInput::what() const throw () {
     return "Bad input";
 }
 
+//verify each line in the database;
+//if not valid, no error but no storage of data
 void    BitcoinExchange::readDatabase(std::string line, bool firstline) {
     size_t posPipe = line.find(',');
     if (posPipe == std::string::npos || posPipe == 0
@@ -62,21 +64,21 @@ void    BitcoinExchange::readDatabase(std::string line, bool firstline) {
             throw HeaderWrong();
         return ;
     }
+
     //price: check for content
     //date: check for space pos[length()] and dash at pos[4] and pos[7]
     if (price.empty() || date.length() != 10 || date[4] != '-' || date[7] != '-')
         return ;
+
     //date::erase dashes
     std::string dateCpy = date;
     date.erase(7,1);
     date.erase(4,1);
     
-    //check the date
+    //check the date (format, valid date)
     int     dateVal;
     double  priceVal;
 
-    /*can turn checkDate to return int and then throw appropriate error
-    with a message (date) passed*/
     try {
         checkDate(date);
         std::istringstream(date) >> dateVal;
@@ -84,6 +86,8 @@ void    BitcoinExchange::readDatabase(std::string line, bool firstline) {
     catch (std::exception &e) {
         return ;
     }
+
+    //check the price is a valid double
     try {
         std::istringstream iss(price);
         if (!(iss >> priceVal))
@@ -106,6 +110,7 @@ void    BitcoinExchange::checkPrice(double price) {
         throw badInput();
 }
 
+//verifies the validity of the date: numeric, valid dates, consider leap years
 void    BitcoinExchange::checkDate(std::string date) {
     for (size_t i = 0; i < date.length(); ++i) {
         if (!std::isdigit(date[i]))
@@ -128,14 +133,16 @@ void    BitcoinExchange::checkDate(std::string date) {
         throw badInput();
     if (day < 1 || day > 31)
         throw badInput();
-    
-    //check for correct dates in the months and leap year
+
     int monthDay [] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     if (day > monthDay[month - 1])
         if (!(month == 2 && day == 29 && (year % 4 == 0 || (year % 100 != 0 && year % 400 == 0))))
             throw badInput();
 }
 
+//Determines the correct output: the amount of btc * the price at the given date
+//or if not found most recent date
+//error if no most recent date found (if no date before the wanted one is stored in database)
 void    BitcoinExchange::checkPrintKey(int date, double amount) {
     std::map<int, double>::iterator it = Database.find(date);
 
@@ -160,6 +167,7 @@ void    BitcoinExchange::checkPrintKey(int date, double amount) {
     }
 }
 
+//iterated over each line of the Input and verifies that all rules are adhered to
 void    BitcoinExchange::validLine(std::string line, bool firstline) {
     size_t posPipe = line.find('|');
     if (posPipe == std::string::npos || posPipe == 0
@@ -191,12 +199,12 @@ void    BitcoinExchange::validLine(std::string line, bool firstline) {
     if (value.empty() || date.length() != 10 || date[4] != '-' || date[7] != '-')
         throw invalidLine();
 
-    //date::erase dashes
+    //date: erase dashes
     std::string dateCpy = date;
     date.erase(7,1);
     date.erase(4,1);
     
-    //check the date
+    //verifies validity of date
     int     dateVal;
     double  amountVal;
 
@@ -210,6 +218,7 @@ void    BitcoinExchange::validLine(std::string line, bool firstline) {
         return ;
     }
 
+    //check the price is a valid double
     try {
         std::istringstream iss(value);
         if (!(iss >> amountVal))
@@ -232,10 +241,11 @@ void    BitcoinExchange::validLine(std::string line, bool firstline) {
 }
 
 
-void BitcoinExchange::loadFile(std::string input) {
+void BitcoinExchange::loadFiles(std::string input) {
     std::ifstream iFile;
     std::ifstream database;
 
+    //both datatbases should open, terminate if they don't
     iFile.open (input.c_str());
     if (!iFile.is_open())
         throw FileError();
@@ -246,11 +256,12 @@ void BitcoinExchange::loadFile(std::string input) {
     
     std::string line;
 
+    //both headers should be valid, terminate if they are not
+    //iterate over each line in each database; program does not terminate in error cases
     std::getline(database, line);
     readDatabase(line, ISFIRSTLINE);
     while (std::getline(database, line))
         readDatabase(line, ISNOTFIRSTLINE);
-
 
     std::getline(iFile, line);
     validLine(line, ISFIRSTLINE);

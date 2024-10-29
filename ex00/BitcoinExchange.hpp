@@ -23,7 +23,7 @@ class BitcoinExchange {
 
         BitcoinExchange&         operator=(const BitcoinExchange &other);
         
-        void    loadFile(std::string inputfile);
+        void    loadFiles(std::string inputfile);
         void    readDatabase(std::string database, bool firstline);
         void    validLine(std::string line, bool firstline);
         void    checkDate(std::string date);
