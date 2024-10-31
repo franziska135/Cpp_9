@@ -2,16 +2,16 @@
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        std::cout << "Error:\t Invalid amount of arguments: ./a.out <arg>" std::endl;
+        std::cout << "Error:\t Invalid amount of arguments: ./a.out <arg>" << std::endl;
         return 1;
     }
     try {
         RPN calculator;
-        int result;
+        //int result;
         
         //calculate result
-        calculator.calculate(argv[1]);
-        std::cout << result << std::endl;
+        calculator.analyze(argv[1]);
+        //std::cout << result << std::endl;
         return 1;
     }
     catch (std::exception &e) {

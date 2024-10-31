@@ -1,8 +1,7 @@
-NAME		=	rpn
+NAME		=	RPN
 INC			= 	RPN.hpp
 CXX			=	c++
 CXXFLAGS	=	-Wall -Wextra -Werror -std=c++98
-
 
 AR		=	ar rc
 RM		=	rm -f
