@@ -28,7 +28,7 @@ const char* RPN::zeroDivision::what() const throw () {
 }
 
 const char* RPN::insufficientOperators::what() const throw () {
-    return "Insufficient operators to perform calculation";
+    return "Insufficient operators";
 }
 
 const char* RPN::Overflow::what() const throw () {
@@ -70,18 +70,16 @@ int RPN::isInRangeStr(std::string number) {
 }
 
 void    RPN::analyze(std::string line) {
-    std::stack<int>  stack;
+    std::stack<int>     stack;
     
-    std::istringstream tokens(line);
-    std::string token;
+    std::istringstream  argument(line);
+    std::string         token;
 
-    while (tokens >> token) {
+    while (argument >> token) {
         if (token == "+" || token == "-" || token == "*" || token == "/") {
             if (stack.size() < 2)
                 throw insufficientOperands();
-
             else {
-
                 int b = stack.top();
                 stack.pop();
                 int a = stack.top();
