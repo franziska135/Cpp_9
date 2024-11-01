@@ -10,8 +10,9 @@ int main(int argc, char *argv[]) {
         PmergeMe list;
         list.parseInput(argc, argv);
 
-        list.downRecursionVec();
+        list.DivideRecursion();
             std::cout << "\nvector after finish:\n";
+        list.ConquerRecursion();
     list.printMatrix();
         
     } catch (std::exception &e) {
