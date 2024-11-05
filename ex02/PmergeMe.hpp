@@ -5,6 +5,8 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
+#include <ctime>
+#include <iomanip>
 
 #define FIRSTUP 1
 #define SECONDUP 0
@@ -24,7 +26,7 @@ class PmergeMe {
 
         void    parseInput (int argc, char *argv[]);
         void    isInRangeStr(std::string number);
-        void    printVector(int i);
+        void    printVector();
         void    printMatrix();
         void    DivideRecursion();
         void    separateDivide(int index);
@@ -32,7 +34,6 @@ class PmergeMe {
         void    ConquerRecursion();
         void    ConquerMerge();
         void    applyMovesConquer(int index);
-        // bool     allElementsProcessed(int i);
         bool    isSortedAscending();
 
         class   NumericArg : public std::exception {
