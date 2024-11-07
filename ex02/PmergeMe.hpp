@@ -26,6 +26,7 @@ class PmergeMe {
 
         void    parseInput (int argc, char *argv[]);
         void    isInRangeStr(std::string number);
+        void    hasDoublicates(std::vector<int> &vec);
         void    printVector();
         void    printMatrix();
         void    DivideRecursion();
@@ -37,6 +38,11 @@ class PmergeMe {
         bool    isSortedAscending();
 
         class   NumericArg : public std::exception {
+            public:
+                const char * what() const throw();
+        };
+
+        class   noDoubles : public std::exception {
             public:
                 const char * what() const throw();
         };

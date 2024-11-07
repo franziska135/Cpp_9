@@ -22,6 +22,10 @@ const char* PmergeMe::NumericArg::what() const throw () {
     return "Arguments must be numeric and positive";
 }
 
+const char* PmergeMe::noDoubles::what() const throw () {
+    return "Arguments shall not contain doublicates";
+}
+
 const char* PmergeMe::Overflow::what() const throw () {
     return "Out of range";
 }
@@ -33,9 +37,9 @@ void    PmergeMe::printVector() {
         return ;
     }
 
-    int i = 0;
+    size_t i = 0;
 
-    while (i < 5) {
+    while (i < 5 && i < _VecMatrix[0].size()) {
         std::cout << _VecMatrix[0][i] << " ";
         i++;
     }
@@ -49,6 +53,16 @@ void PmergeMe::isInRangeStr(std::string number) {
     if ((number.size() >= 10 && number > "2147483647")
         || number.size() > 10)
         throw Overflow();
+}
+
+void    PmergeMe::hasDoublicates(std::vector<int> &v) {
+    std::vector<int> copy = v;
+    
+    std::sort(copy.begin(), copy.end());
+    for (size_t i = 0; i < copy.size() - 1; i++) {
+        if (copy[i] == copy[i + 1])
+            throw noDoubles();
+    }
 }
 
 void    PmergeMe::parseInput(int argc, char *argv[]) {
@@ -78,6 +92,11 @@ void    PmergeMe::parseInput(int argc, char *argv[]) {
         } _VecArray.push_back(number);
     } if (_VecMatrix.size() < 1)
         _VecMatrix.resize(1);
+    try {
+        hasDoublicates(_VecArray);
+    } catch (std::exception &e) {
+        throw ;
+    }
     _VecMatrix[0] = _VecArray;
 }
 

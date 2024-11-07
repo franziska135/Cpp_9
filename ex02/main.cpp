@@ -17,12 +17,11 @@ int main(int argc, char *argv[]) {
 
         std::clock_t start = std::clock();
         list.DivideRecursion();
-        std::clock_t end = std::clock();
         list.ConquerRecursion();
+        std::clock_t end = std::clock();
         
         std::cout << "After:\t";
         list.printVector();
-
         double duration = 1e6 * (end - start) / CLOCKS_PER_SEC;
         std::cout << std::fixed << std::setprecision(5);
         std::cout   << "Time to process a range of " << argc-1
