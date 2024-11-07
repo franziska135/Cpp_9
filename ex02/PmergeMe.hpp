@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <deque>
 #include <sstream>
 #include <algorithm>
 #include <ctime>
@@ -14,7 +15,10 @@
 class PmergeMe {
     private:
         std::vector<int>                _VecArray;
-        std::vector<std::vector<int> >   _VecMatrix;
+        std::deque<int>                 _DeqArray;
+
+        std::vector<std::vector<int> >  _VecMatrix;
+        std::deque<std::deque<int> >    _DeqMatrix;
         std::vector<int>                _moves;
         std::vector<int>                _indexInsert;
     public:
@@ -29,12 +33,19 @@ class PmergeMe {
         void    hasDoublicates(std::vector<int> &vec);
         void    printVector();
         void    printMatrix();
-        void    DivideRecursion();
-        void    separateDivide(int index);
-        void    applyMovesDivide(int index);
-        void    ConquerRecursion();
-        void    ConquerMerge();
-        void    applyMovesConquer(int index);
+        void    VecDivideRecursion();
+        void    VecDivide(int index);
+        void    VecApplyMovesDivide(int index);
+        void    VecConquerRecursion();
+        void    VecConquerMerge();
+        void    VecApplyMovesConquer(int index);
+        
+        // void    DeqDivideRecursion();
+        // void    DeqDivide(int index);
+        // void    DeqApplyMovesDivide(int index);
+        // void    DeqConquerRecursion();
+        // void    DeqConquerMerge();
+        // void    DeqApplyMovesConquer(int index);
         bool    isSortedAscending();
 
         class   NumericArg : public std::exception {

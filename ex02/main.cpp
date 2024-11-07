@@ -16,8 +16,8 @@ int main(int argc, char *argv[]) {
         list.printVector();
 
         std::clock_t start = std::clock();
-        list.DivideRecursion();
-        list.ConquerRecursion();
+        list.VecDivideRecursion();
+        list.VecConquerRecursion();
         std::clock_t end = std::clock();
         
         std::cout << "After:\t";

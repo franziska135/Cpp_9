@@ -30,6 +30,18 @@ const char* PmergeMe::Overflow::what() const throw () {
     return "Out of range";
 }
 
+/*----------------------------------*/
+/*---------Print functions----------*/
+/*----------------------------------*/
+
+void PmergeMe::printMatrix() {
+    for (size_t i = 0; i < _VecMatrix.size() / 16; i++) {
+        for (size_t j = 0; j < _VecMatrix[i].size(); j++)
+            std::cout << "\t" << _VecMatrix[i][j] << " ";
+        std::cout << std::endl;
+    } std::cout << std::endl;
+}
+
 void    PmergeMe::printVector() {
 
     if (_VecMatrix[0].empty()) {
@@ -48,6 +60,29 @@ void    PmergeMe::printVector() {
         std::cout << " [...]";
     std::cout << std::endl;
 }
+
+/*-----------------------------------*/
+/*--helper function - is it sortet?--*/
+/*-----------------------------------*/
+
+bool PmergeMe::isSortedAscending() {
+    std::vector<int> vec = _VecMatrix[0];
+    for (size_t i = 1; i < vec.size(); ++i) {
+        if (vec[i] < vec[i - 1]) {
+            std::cout << "index: " << i << " value: " << vec[i] << std::endl;
+            std::cout << "value before : " << vec[i - 1] << std::endl;
+            std::cout << "value after: " << vec[i + 1] << std::endl;
+            std::cout << "value 2. after: " << vec[i + 2] << std::endl;
+            
+            return false;
+        }
+    }
+    return true;
+}
+
+/*----------------------------------*/
+/*Error management and input parsing*/
+/*----------------------------------*/
 
 void PmergeMe::isInRangeStr(std::string number) {
     if ((number.size() >= 10 && number > "2147483647")
@@ -89,18 +124,68 @@ void    PmergeMe::parseInput(int argc, char *argv[]) {
                 throw NumericArg();
         } catch (std::exception &e) {
             throw ;
-        } _VecArray.push_back(number);
+        } 
+        _VecArray.push_back(number);
+        _DeqArray.push_back(number);
     } if (_VecMatrix.size() < 1)
         _VecMatrix.resize(1);
+    if (_DeqMatrix.size() < 1)
+        _DeqMatrix.resize(1);
     try {
         hasDoublicates(_VecArray);
     } catch (std::exception &e) {
         throw ;
     }
     _VecMatrix[0] = _VecArray;
+    _DeqMatrix[0] = _DeqArray;
 }
 
-void    PmergeMe::separateDivide(int index) {
+/*-----------------------------------*/
+/*Ford Johnson: with vector container*/
+/*-----------------------------------*/
+
+/*first step: going down to rock bottom*/
+
+void    PmergeMe::VecDivideRecursion() {
+    if (_VecMatrix[0].size() == 2 && _VecMatrix[0][0] && _VecMatrix[0][1]
+        && _VecMatrix[0][0] > _VecMatrix[0][1]) {
+            for (int i = _VecMatrix.size() - 1; i >= 0; i--)
+                std::swap(_VecMatrix[i][0], _VecMatrix[i][1]);
+        }
+    if (_VecMatrix[0].size() <= 2)
+        return ;
+
+    if (_VecMatrix.size() < 2)
+        VecDivide(0);
+    else {
+        VecDivide(0);
+        for (int i = _VecMatrix.size() - 1; i > 1; i--)
+            VecApplyMovesDivide(i);
+    }
+
+    if (!_moves.empty())
+        _moves.clear();
+    VecDivideRecursion();
+}
+
+/*second step: going up from rock bottom*/
+
+void    PmergeMe::VecConquerRecursion() {
+    if (_VecMatrix.size() == 1)
+        return ;
+    VecConquerMerge();
+
+    for (int i = _VecMatrix.size() - 2; i > 0; i -= 2)
+        VecApplyMovesConquer(i);
+
+    if (!_indexInsert.empty())
+        _indexInsert.clear();
+    VecConquerRecursion();
+}
+
+/*implementations*/
+
+void    PmergeMe::VecDivide(int index) {
     std::vector <int> bigger, smaller;
 
     for (size_t i = 0; i + 1 < _VecMatrix[index].size(); i += 2) {
@@ -122,7 +207,7 @@ void    PmergeMe::separateDivide(int index) {
     _VecMatrix.insert(_VecMatrix.begin() + index, bigger);
 }
 
-void    PmergeMe::applyMovesDivide(int index) {
+void    PmergeMe::VecApplyMovesDivide(int index) {
     std::vector <int> bigger, smaller;
 
     for (size_t i = 0; i + 1 < _VecMatrix[index].size(); i += 2) {
@@ -148,30 +233,7 @@ void    PmergeMe::applyMovesDivide(int index) {
     _VecMatrix.insert(_VecMatrix.begin() + index, bigger);
 }
 
-void    PmergeMe::DivideRecursion() {
-    if (_VecMatrix[0].size() == 2 && _VecMatrix[0][0] && _VecMatrix[0][1]
-        && _VecMatrix[0][0] > _VecMatrix[0][1]) {
-            for (int i = _VecMatrix.size() - 1; i >= 0; i--)
-                std::swap(_VecMatrix[i][0], _VecMatrix[i][1]);
-        }
-    if (_VecMatrix[0].size() <= 2)
-        return ;
-
-    if (_VecMatrix.size() < 2)
-        separateDivide(0);
-    else {
-        separateDivide(0);
-        for (int i = _VecMatrix.size() - 1; i > 1; i--)
-            applyMovesDivide(i);
-    }
-
-    if (!_moves.empty())
-        _moves.clear();
-    DivideRecursion();
-}
-
-
-void    PmergeMe::ConquerMerge() {
+void    PmergeMe::VecConquerMerge() {
 
     std::vector<int>::iterator pos;
     
@@ -197,7 +259,7 @@ void    PmergeMe::ConquerMerge() {
     _VecMatrix.erase(_VecMatrix.begin() + 1);
 }
 
-void    PmergeMe::applyMovesConquer(int index) {
+void    PmergeMe::VecApplyMovesConquer(int index) {
     for (size_t j = 0; j < _VecMatrix[index + 1].size(); j++) {
         int     valueInsert = _VecMatrix[index + 1][j];
         
@@ -212,38 +274,136 @@ void    PmergeMe::applyMovesConquer(int index) {
     _VecMatrix.erase(_VecMatrix.begin() + index + 1);
 }
 
-void    PmergeMe::ConquerRecursion() {
-    if (_VecMatrix.size() == 1)
-        return ;
-    ConquerMerge();
+// /*-----------------------------------*/
+// /*Ford Johnson: with deque container-*/
+// /*-----------------------------------*/
 
-    for (int i = _VecMatrix.size() - 2; i > 0; i -= 2)
-        applyMovesConquer(i);
+// /*first step: going down to rock bottom*/
 
-    if (!_indexInsert.empty())
-        _indexInsert.clear();
-    ConquerRecursion();
-}
+// void    PmergeMe::DeqDivideRecursion() {
+//     if (_DeqMatrix[0].size() == 2 && _DeqMatrix[0][0] && _DeqMatrix[0][1]
+//         && _DeqMatrix[0][0] > _DeqMatrix[0][1]) {
+//             for (int i = _DeqMatrix.size() - 1; i >= 0; i--)
+//                 std::swap(_DeqMatrix[i][0], _DeqMatrix[i][1]);
+//         }
+//     if (_DeqMatrix[0].size() <= 2)
+//         return ;
 
-void PmergeMe::printMatrix() {
-    for (size_t i = 0; i < _VecMatrix.size() / 16; i++) {
-        for (size_t j = 0; j < _VecMatrix[i].size(); j++)
-            std::cout << "\t" << _VecMatrix[i][j] << " ";
-        std::cout << std::endl;
-    } std::cout << std::endl;
-}
+//     if (_DeqMatrix.size() < 2)
+//         DeqDivide(0);
+//     else {
+//         DeqDivide(0);
+//         for (int i = _DeqMatrix.size() - 1; i > 1; i--)
+//             DeqApplyMovesDivide(i);
+//     }
 
-bool PmergeMe::isSortedAscending() {
-    std::vector<int> vec = _VecMatrix[0];
-    for (size_t i = 1; i < vec.size(); ++i) {
-        if (vec[i] < vec[i - 1]) {
-            std::cout << "index: " << i << " value: " << vec[i] << std::endl;
-            std::cout << "value before : " << vec[i - 1] << std::endl;
-            std::cout << "value after: " << vec[i + 1] << std::endl;
-            std::cout << "value 2. after: " << vec[i + 2] << std::endl;
+//     if (!_moves.empty())
+//         _moves.clear();
+//     DeqDivideRecursion();
+// }
+
+// /*second step: going up from rock bottom*/
+
+// void    PmergeMe::DeqConquerRecursion() {
+//     if (_DeqMatrix.size() == 1)
+//         return ;
+//     DeqConquerMerge();
+
+//     for (int i = _DeqMatrix.size() - 2; i > 0; i -= 2)
+//         DeqApplyMovesConquer(i);
+
+//     if (!_indexInsert.empty())
+//         _indexInsert.clear();
+//     DeqConquerRecursion();
+// }
+
+// /*implementations*/
+
+// void    PmergeMe::DeqDivide(int index) {
+//     std::deque <int> bigger, smaller;
+
+//     for (size_t i = 0; i + 1 < _DeqMatrix[index].size(); i += 2) {
+//         if (_DeqMatrix[index][i] > _DeqMatrix[index][i + 1]) {
+//             bigger.push_back(_DeqMatrix[index][i]);
+//             smaller.push_back(_DeqMatrix[index][i + 1]);
+//             _moves.push_back(FIRSTUP);
+//         } else {
+//             bigger.push_back(_DeqMatrix[index][i + 1]);
+//             smaller.push_back(_DeqMatrix[index][i]);
+//             _moves.push_back(SECONDUP);
+//         }
+//     } if (_DeqMatrix[index].size() % 2 != 0)
+//         smaller.push_back(_DeqMatrix[index].back());
+
+//     if (!_DeqMatrix[index].empty())
+//     _DeqMatrix.erase(_DeqMatrix.begin() + index);
+//     _DeqMatrix.insert(_DeqMatrix.begin() + index, smaller);
+//     _DeqMatrix.insert(_DeqMatrix.begin() + index, bigger);
+// }
+
+// void    PmergeMe::DeqApplyMovesDivide(int index) {
+//     std::deque <int> bigger, smaller;
+
+//     for (size_t i = 0; i + 1 < _DeqMatrix[index].size(); i += 2) {
+//         if (i / 2 >= _moves.size())
+//             smaller.push_back(_DeqMatrix[index][i]);
+//         else  {
+//             if (_moves[i / 2] == FIRSTUP) {
+//                 bigger.push_back(_DeqMatrix[index][i]);
+//                 smaller.push_back(_DeqMatrix[index][i + 1]);
+//             } else {
+//                 bigger.push_back(_DeqMatrix[index][i + 1]);
+//                 smaller.push_back(_DeqMatrix[index][i]);
+//             }
+//             if (!_DeqMatrix[1].empty() && (_DeqMatrix[1].size() % 2 != 0 || (_VecMatrix[1].size() + _VecMatrix[0].size()) % 2 != 0)
+//             && i + 3 == _DeqMatrix[index].size())
+//                 smaller.push_back(_DeqMatrix[index][i + 2]);
+//         }
+//     }
+
+//     if (!_DeqMatrix[index].empty())
+//         _DeqMatrix.erase(_DeqMatrix.begin() + index);
+//     _DeqMatrix.insert(_DeqMatrix.begin() + index, smaller);
+//     _DeqMatrix.insert(_DeqMatrix.begin() + index, bigger);
+// }
+
+// void    PmergeMe::DeqConquerMerge() {
+
+//     std::vector<int>::iterator pos;
+    
+//     _DeqMatrix[0].insert(_DeqMatrix[0].begin(), _DeqMatrix[1][0]);
+//     _DeqMatrix[1][0] = -1;
+//     _DeqMatrix[1].insert(_DeqMatrix[1].begin(), -1);
+//     _indexInsert.push_back(0);
+    
+//     for (size_t i = 0; i < _DeqMatrix[1].size(); i++) {
+//         if (_DeqMatrix[1][i] != -1) {
+//             int valueInsert = _DeqMatrix[1][i];
             
-            return false;
-        }
-    }
-    return true;
-}
+//             /*insert with bin sort bc jakobs tal does not care for now*/
+//             pos = std::lower_bound(_DeqMatrix[0].begin(), _DeqMatrix[0].end(), valueInsert);
+//             int targetIndex = std::distance(_DeqMatrix[0].begin(), pos);
+            
+//             _indexInsert.push_back(targetIndex);
+//             _DeqMatrix[0].insert(pos, valueInsert);
+//             _DeqMatrix[1][i] = -1;
+//             _DeqMatrix[1].insert(_DeqMatrix[1].begin(), -1);
+//         }
+//     }
+//     _DeqMatrix.erase(_DeqMatrix.begin() + 1);
+// }
+
+// void    PmergeMe::DeqApplyMovesConquer(int index) {
+//     for (size_t j = 0; j < _DeqMatrix[index + 1].size(); j++) {
+//         int     valueInsert = _DeqMatrix[index + 1][j];
+        
+//         if (j >= _indexInsert.size())
+//             _DeqMatrix[index].push_back(valueInsert);
+//         else {
+//             size_t  targetIndex = _indexInsert[j];
+//             std::vector<int>::iterator pos = _DeqMatrix[index].begin() + targetIndex;
+//             _DeqMatrix[index].insert(pos, valueInsert);
+//         }
+//     }
+//     _DeqMatrix.erase(_DeqMatrix.begin() + index + 1);
+// }
