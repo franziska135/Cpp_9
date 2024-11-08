@@ -33,12 +33,12 @@ class PmergeMe {
         void    hasDoublicates(std::vector<int> &vec);
         void    printVector();
         void    printMatrix();
-        void    VecDivideRecursion();
-        void    VecDivide(int index);
-        void    VecApplyMovesDivide(int index);
-        void    VecConquerRecursion();
-        void    VecConquerMerge();
-        void    VecApplyMovesConquer(int index);
+        void    VecMergeRecursion();
+        void    VecMerge(int index);
+        void    VecApplyMovesMerge(int index);
+        void    VecInsertRecursion();
+        void    VecInsert();
+        void    VecApplyMovesInsert(int index);
         
         // void    DeqDivideRecursion();
         // void    DeqDivide(int index);

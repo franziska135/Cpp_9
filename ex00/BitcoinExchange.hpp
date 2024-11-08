@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <ctime>
 
 #define ISFIRSTLINE 1
 #define ISNOTFIRSTLINE 0
@@ -31,6 +32,11 @@ class BitcoinExchange {
         void    checkPrintKey(int key, double amount);
 
         class   FileError : public std::exception {
+            public:
+                const char * what() const throw();
+        };
+
+        class   FutureDate : public std::exception {
             public:
                 const char * what() const throw();
         };

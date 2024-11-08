@@ -38,6 +38,10 @@ const char* BitcoinExchange::badInput::what() const throw () {
     return "Bad input";
 }
 
+const char* BitcoinExchange::FutureDate::what() const throw () {
+    return "Date is in the future";
+}
+
 //verify each line in the database;
 //if not valid, no error but no storage of data
 void    BitcoinExchange::readDatabase(std::string line, bool firstline) {
@@ -60,6 +64,7 @@ void    BitcoinExchange::readDatabase(std::string line, bool firstline) {
     price.erase(0, price.find_first_not_of(" \t"));
     
     if (firstline) {
+        // std::cout << "Error:\tDatabase header formatted incorrectly" << std::endl;
         if (date != "date" || price != "exchange_rate")
             throw HeaderWrong();
         return ;
@@ -127,13 +132,23 @@ void    BitcoinExchange::checkDate(std::string date) {
     std::istringstream(monthStr) >> month;
     std::istringstream(dayStr) >> day;
         
-    if (year < 2009 || year > 2024)
+    if (year < 2009)
         throw badInput();
     if (month < 1 || month > 12)
         throw badInput();
     if (day < 1 || day > 31)
         throw badInput();
 
+    std::time_t now = std::time(0);
+    std::tm* localT = std::localtime(&now);
+
+    int todayDay = localT->tm_mday;
+    int todayMonth = localT->tm_mon + 1;
+    int todayYear = localT->tm_year + 1900;
+
+    if (year > todayYear || (year == todayYear && (month > todayMonth || (month == todayMonth && day > todayDay))))
+        throw FutureDate();
+    
     int monthDay [] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     if (day > monthDay[month - 1])
         if (!(month == 2 && day == 29 && (year % 4 == 0 || (year % 100 != 0 && year % 400 == 0))))
@@ -188,10 +203,11 @@ void    BitcoinExchange::validLine(std::string line, bool firstline) {
 
     value.erase(value.find_last_not_of(" \t") + 1);
     value.erase(0, value.find_first_not_of(" \t"));
-    
+
     //value: check for content
     //date: check for space pos[length()] and dash at pos[4] and pos[7]
     if (firstline) {
+        // std::cout << "Error:\tInput header formatted incorrectly" << std::endl;
         if (date != "date" || value != "value")
             throw HeaderWrong();
         return ;
@@ -256,7 +272,7 @@ void BitcoinExchange::loadFiles(std::string input) {
     
     std::string line;
 
-    //both headers should be valid, terminate if they are not
+    //both headers should be valid,t terminate if they are not
     //iterate over each line in each database; program does not terminate in error cases
     std::getline(database, line);
     readDatabase(line, ISFIRSTLINE);
