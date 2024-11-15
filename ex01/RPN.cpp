@@ -16,7 +16,7 @@ RPN::~RPN  () {
 }
 
 const char* RPN::invalidToken::what() const throw () {
-    return "Argument contains invalid token";
+    return "Invalid Argument";
 }
 
 const char* RPN::insufficientOperands::what() const throw () {
