@@ -19,8 +19,9 @@ class PmergeMe {
 
         std::vector<std::vector<int> >  _VecMatrix;
         std::deque<std::deque<int> >    _DeqMatrix;
-        std::vector<int>                _moves;
-        std::vector<int>                _indexInsert;
+        std::vector<int>                _MergeTarget;
+        std::vector<int>                _InsertTarget;
+        std::vector<int>                _InsertSourceIndex;
     public:
         PmergeMe        (void);
         PmergeMe        (const PmergeMe& other);
@@ -31,22 +32,27 @@ class PmergeMe {
         void    parseInput (int argc, char *argv[]);
         void    isInRangeStr(std::string number);
         void    hasDoublicates(std::vector<int> &vec);
+        size_t  calc(size_t n);
         void    printVector();
         void    printMatrix();
+        bool    isSortedAscending();
+    
         void    VecMergeRecursion();
         void    VecMerge(int index);
         void    VecApplyMovesMerge(int index);
         void    VecInsertRecursion();
         void    VecInsert();
         void    VecApplyMovesInsert(int index);
-        
-        // void    DeqDivideRecursion();
-        // void    DeqDivide(int index);
-        // void    DeqApplyMovesDivide(int index);
-        // void    DeqConquerRecursion();
-        // void    DeqConquerMerge();
-        // void    DeqApplyMovesConquer(int index);
-        bool    isSortedAscending();
+        int     VecAllDummy(int index);
+
+        void    DeqMergeRecursion();
+        void    DeqMerge(int index);
+        void    DeqApplyMovesMerge(int index);
+        void    DeqInsertRecursion();
+        void    DeqInsert();
+        void    DeqApplyMovesInsert(int index);
+        int     DeqAllDummy(int index);
+    
 
         class   NumericArg : public std::exception {
             public:
