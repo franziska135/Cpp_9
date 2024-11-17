@@ -146,7 +146,9 @@ void    BitcoinExchange::checkDate(std::string date) {
     int todayMonth = localT->tm_mon + 1;
     int todayYear = localT->tm_year + 1900;
 
-    if (year > todayYear || (year == todayYear && (month > todayMonth || (month == todayMonth && day > todayDay))))
+    if (year > todayYear
+        || (year == todayYear && (month > todayMonth
+        || (month == todayMonth && day > todayDay))))
         throw FutureDate();
     
     int monthDay [] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};

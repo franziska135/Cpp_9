@@ -59,12 +59,34 @@ void    PmergeMe::printVector() {
     std::cout << std::endl;
 }
 
-size_t  PmergeMe::calc(size_t n) {
-    return (n + 2);
+int PmergeMe::calc(int n) {
+    if (n == 0)
+        return 0;
+    if (n == 1)
+        return 1;
+    int first = 0;
+    int second = 1;
+    int result;
+
+    for (int i = 2; i <= n; ++i) {
+        result = 2 * first + second;
+        first = second;
+        second = result;
+    }
+    return result;
 }
 
-bool PmergeMe::isSortedAscending() {
+bool PmergeMe::VecIsSortedAscending() {
     std::vector<int> vec = _VecMatrix[0];
+    for (size_t i = 1; i < vec.size(); ++i) {
+        if (vec[i] < vec[i - 1])
+            return false;
+    }
+    return true;
+}
+
+bool PmergeMe::DeqIsSortedAscending() {
+    std::deque<int> vec = _DeqMatrix[0];
     for (size_t i = 1; i < vec.size(); ++i) {
         if (vec[i] < vec[i - 1])
             return false;
@@ -233,13 +255,23 @@ void    PmergeMe::VecApplyMovesMerge(int index) {
 int     PmergeMe::VecAllDummy(int index){
     size_t i = 0;
     while (i < _VecMatrix[index].size()) {
-        if (_VecMatrix[index][i] != -1)
+        if (_VecMatrix[index][i] != -1 && _VecMatrix[index][i] != -2)
             return 0;
         i++;
     }
     return 1;
 }
 
+
+int PmergeMe::VecAmtofDummies(int j) {
+    int count = 0;
+    while (j >= 0) {
+        if (_VecMatrix[1][j] == -2)
+            count++;
+        j--;
+    }
+    return count;
+}
 /*merging the upper two std::vector elements in the matrix and recording the steps*/
 void    PmergeMe::VecInsert() {
 
@@ -247,29 +279,19 @@ void    PmergeMe::VecInsert() {
 
     _VecMatrix[0].insert(_VecMatrix[0].begin(), _VecMatrix[1][0]);
     _VecMatrix[1][0] = -1;
-    _VecMatrix[1].insert(_VecMatrix[1].begin(), -1);
+    _VecMatrix[1].insert(_VecMatrix[1].begin(), -2);
     _InsertTarget.push_back(0);
     _InsertSourceIndex.push_back(0);
 
     int     dummy = 1;
-    size_t  i = 2;
-    size_t  jakob = i;
+    int     n = 2;
+    int     start = calc(n) + dummy;
+    int     end = 0;
 
     while (!VecAllDummy(1)) {
-        if (i >= _VecMatrix[1].size())
-            i = _VecMatrix[1].size() - 1;
-    
-        size_t start = i;
-        size_t end;
-
-        if (i == 3)
-            end = 0;
-        else
-            end = jakob - 2;
-
-        for (size_t j = start; j > end; j--) {
-            if (_VecMatrix[1][j] != -1) { 
-                int trueIndex = j - dummy;
+        for (int j = start; j > end; j--) {
+            if (_VecMatrix[1][j] != -1 && _VecMatrix[1][j] != -2) {
+                int trueIndex = j - VecAmtofDummies(j);
                 int valueInsert = _VecMatrix[1][j];
 
                 pos = std::lower_bound(_VecMatrix[0].begin(), _VecMatrix[0].begin() + j, valueInsert);
@@ -281,12 +303,14 @@ void    PmergeMe::VecInsert() {
                 _VecMatrix[0].insert(pos, valueInsert);
                 _VecMatrix[1][j] = -1;
 
-                _VecMatrix[1].insert(_VecMatrix[1].begin() + targetIndex, -1);
+                _VecMatrix[1].insert(_VecMatrix[1].begin() + targetIndex, -2);
                 dummy++;
             }
         }
-        jakob = i;
-        i = calc(i);
+        n++;
+        start = calc(n) + dummy;
+        if (start >= static_cast<int>(_VecMatrix[1].size()))
+            start = static_cast<int>(_VecMatrix[1].size() - 1);
     }
     _VecMatrix.erase(_VecMatrix.begin() + 1);
 }
@@ -416,13 +440,22 @@ void    PmergeMe::DeqApplyMovesMerge(int index) {
 int     PmergeMe::DeqAllDummy(int index){
     size_t i = 0;
     while (i < _DeqMatrix[index].size()) {
-        if (_DeqMatrix[index][i] != -1)
+        if (_DeqMatrix[index][i] != -1 && _DeqMatrix[index][i] != -2)
             return 0;
         i++;
     }
     return 1;
 }
 
+int PmergeMe::DeqAmtofDummies(int j) {
+    int count = 0;
+    while (j >= 0) {
+        if (_DeqMatrix[1][j] == -2)
+            count++;
+        j--;
+    }
+    return count;
+}
 /*merging the upper two std::deque elements in the matrix and recording the steps*/
 void    PmergeMe::DeqInsert() {
 
@@ -430,29 +463,19 @@ void    PmergeMe::DeqInsert() {
 
     _DeqMatrix[0].insert(_DeqMatrix[0].begin(), _DeqMatrix[1][0]);
     _DeqMatrix[1][0] = -1;
-    _DeqMatrix[1].insert(_DeqMatrix[1].begin(), -1);
+    _DeqMatrix[1].insert(_DeqMatrix[1].begin(), -2);
     _InsertTarget.push_back(0);
     _InsertSourceIndex.push_back(0);
 
     int     dummy = 1;
-    size_t  i = 2;
-    size_t  jakob = i;
+    int     n = 2;
+    int     start = calc(n) + dummy;
+    int     end = 0;
 
     while (!DeqAllDummy(1)) {
-        if (i >= _DeqMatrix[1].size())
-            i = _DeqMatrix[1].size() - 1;
-    
-        size_t start = i;
-        size_t end;
-
-        if (i == 3)
-            end = 0;
-        else
-            end = jakob - 2;
-
-        for (size_t j = start; j > end; j--) {
-            if (_DeqMatrix[1][j] != -1) { 
-                int trueIndex = j - dummy;
+        for (int j = start; j > end; j--) {
+            if (_DeqMatrix[1][j] != -1 && _DeqMatrix[1][j] != -2) {
+                int trueIndex = j - DeqAmtofDummies(j);
                 int valueInsert = _DeqMatrix[1][j];
 
                 pos = std::lower_bound(_DeqMatrix[0].begin(), _DeqMatrix[0].begin() + j, valueInsert);
@@ -464,12 +487,14 @@ void    PmergeMe::DeqInsert() {
                 _DeqMatrix[0].insert(pos, valueInsert);
                 _DeqMatrix[1][j] = -1;
 
-                _DeqMatrix[1].insert(_DeqMatrix[1].begin() + targetIndex, -1);
+                _DeqMatrix[1].insert(_DeqMatrix[1].begin() + targetIndex, -2);
                 dummy++;
             }
         }
-        jakob = i;
-        i = calc(i);
+        n++;
+        start = calc(n) + dummy;
+        if (start >= static_cast<int>(_DeqMatrix[1].size()))
+            start = static_cast<int>(_DeqMatrix[1].size() - 1);
     }
     _DeqMatrix.erase(_DeqMatrix.begin() + 1);
 }

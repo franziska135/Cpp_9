@@ -2,7 +2,7 @@
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        std::cerr << "Error:\t Invalid amount of arguments: ./a.out <arg>" << std::endl;
+        std::cerr << "Error:\tInvalid amount of arguments: ./a.out <arg>" << std::endl;
         return 0;
     }
     try {

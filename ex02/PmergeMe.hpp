@@ -22,6 +22,7 @@ class PmergeMe {
         std::vector<int>                _MergeTarget;
         std::vector<int>                _InsertTarget;
         std::vector<int>                _InsertSourceIndex;
+        
     public:
         PmergeMe        (void);
         PmergeMe        (const PmergeMe& other);
@@ -32,10 +33,11 @@ class PmergeMe {
         void    parseInput (int argc, char *argv[]);
         void    isInRangeStr(std::string number);
         void    hasDoublicates(std::vector<int> &vec);
-        size_t  calc(size_t n);
+        int     calc(int n);
         void    printVector();
         void    printMatrix();
-        bool    isSortedAscending();
+        bool    DeqIsSortedAscending();
+        bool    VecIsSortedAscending();
     
         void    VecMergeRecursion();
         void    VecMerge(int index);
@@ -44,6 +46,7 @@ class PmergeMe {
         void    VecInsert();
         void    VecApplyMovesInsert(int index);
         int     VecAllDummy(int index);
+        int     VecAmtofDummies(int j);
 
         void    DeqMergeRecursion();
         void    DeqMerge(int index);
@@ -52,6 +55,7 @@ class PmergeMe {
         void    DeqInsert();
         void    DeqApplyMovesInsert(int index);
         int     DeqAllDummy(int index);
+        int     DeqAmtofDummies(int j);
     
 
         class   NumericArg : public std::exception {

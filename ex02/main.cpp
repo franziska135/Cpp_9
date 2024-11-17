@@ -38,13 +38,24 @@ int main(int argc, char *argv[]) {
         std::cout   << "Time to process a range of " << argc-1
                     << " elements with std::deque:\t" << duration << " us"
                     << std::endl;
-        
-        // std::cout << "\nTest if the input is sorted:\t";
-        // if (list.isSortedAscending())
-        //     std::cout << "YES!" << std::endl;
-        // else
-        //     std::cout << "Boo" << std::endl;
-        
+
+        if (list.VecIsSortedAscending())
+            std::cout << "\nVector: YES" << std::endl;
+        else
+            std::cout << "Vector: NOOO" << std::endl;
+
+        if (list.DeqIsSortedAscending())
+            std::cout << "Deq: YES\n" << std::endl;
+        else
+            std::cout << "Deq: NOOO\n" << std::endl;
+
+        int i = 0;
+        while (i < 20) {
+            std::cout << list.calc(i) << " ";
+            i++;
+        }
+        std::cout << std::endl;
+
     } catch (std::exception &e) {
         std::cerr << "ERROR:\t" << e.what() << std::endl;
     }

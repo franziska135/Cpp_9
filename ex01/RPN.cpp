@@ -89,7 +89,6 @@ void    RPN::analyze(std::string line) {
                 stack.push(result);
             }
         }
-        //addition to subject: evaluating non-single digit numbers
         else { 
             size_t i = 0;
 
